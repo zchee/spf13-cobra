@@ -2090,8 +2090,10 @@ func defaultHelpFunc(w io.Writer, in any) error {
 	}
 	usage = trimRightSpace(usage)
 	if usage != "" {
-		fmt.Fprintln(w, usage)
-		fmt.Fprintln(w)
+		// One Write for the text and the blank line, still before UsageString,
+		// which may run user code or exit the process. Both operands are strings,
+		// so Fprint puts nothing between them.
+		fmt.Fprint(w, usage, "\n\n")
 	}
 	if c.Runnable() || c.HasSubCommands() {
 		fmt.Fprint(w, c.UsageString())
