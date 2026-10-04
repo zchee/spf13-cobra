@@ -243,7 +243,7 @@ func (c *Command) enforceFlagGroupsForCompletion() {
 		for _, isSet := range flagnameAndStatus {
 			if isSet {
 				// One of the flags of the group is set, mark the other ones as required
-				for _, fName := range strings.Split(flagList, " ") {
+				for fName := range strings.SplitSeq(flagList, " ") {
 					_ = c.MarkFlagRequired(fName)
 				}
 			}
@@ -264,7 +264,7 @@ func (c *Command) enforceFlagGroupsForCompletion() {
 		// None of the flags of the group are set, mark all flags in the group
 		// as required
 		if !isSet {
-			for _, fName := range strings.Split(flagList, " ") {
+			for fName := range strings.SplitSeq(flagList, " ") {
 				_ = c.MarkFlagRequired(fName)
 			}
 		}
@@ -278,7 +278,7 @@ func (c *Command) enforceFlagGroupsForCompletion() {
 				// One of the flags of the mutually exclusive group is set, mark the other ones as hidden
 				// Don't mark the flag that is already set as hidden because it may be an
 				// array or slice flag and therefore must continue being suggested
-				for _, fName := range strings.Split(flagList, " ") {
+				for fName := range strings.SplitSeq(flagList, " ") {
 					if fName != flagName {
 						flag := c.Flags().Lookup(fName)
 						flag.Hidden = true

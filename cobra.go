@@ -20,8 +20,10 @@ package cobra
 import (
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"text/template"
@@ -82,16 +84,14 @@ var MousetrapDisplayDuration = 5 * time.Second
 
 // AddTemplateFunc adds a template function that's available to Usage and Help
 // template generation.
-func AddTemplateFunc(name string, tmplFunc interface{}) {
+func AddTemplateFunc(name string, tmplFunc any) {
 	templateFuncs[name] = tmplFunc
 }
 
 // AddTemplateFuncs adds multiple template functions that are available to Usage and
 // Help template generation.
 func AddTemplateFuncs(tmplFuncs template.FuncMap) {
-	for k, v := range tmplFuncs {
-		templateFuncs[k] = v
-	}
+	maps.Copy(templateFuncs, tmplFuncs)
 }
 
 // OnInitialize sets the passed functions to be run when each command's
@@ -111,7 +111,7 @@ func OnFinalize(y ...func()) {
 // Gt takes two types and checks whether the first type is greater than the second. In case of types Arrays, Chans,
 // Maps and Slices, Gt will compare their lengths. Ints are compared directly while strings are first parsed as
 // ints and then compared.
-func Gt(a interface{}, b interface{}) bool {
+func Gt(a any, b any) bool {
 	var left, right int64
 	av := reflect.ValueOf(a)
 
@@ -141,7 +141,7 @@ func Gt(a interface{}, b interface{}) bool {
 // FIXME Eq is unused by cobra and should be removed in a version 2. It exists only for compatibility with users of cobra.
 
 // Eq takes two types and checks whether they are equal. Supported types are int and string. Unsupported types will panic.
-func Eq(a interface{}, b interface{}) bool {
+func Eq(a any, b any) bool {
 	av := reflect.ValueOf(a)
 	bv := reflect.ValueOf(b)
 
@@ -179,7 +179,7 @@ func rpad(s string, padding int) string {
 func tmpl(text string) *tmplFunc {
 	return &tmplFunc{
 		tmpl: text,
-		fn: func(w io.Writer, data interface{}) error {
+		fn: func(w io.Writer, data any) error {
 			t := template.New("top")
 			t.Funcs(templateFuncs)
 			template.Must(t.Parse(text))
@@ -223,16 +223,11 @@ func ld(s, t string, ignoreCase bool) int {
 }
 
 func stringInSlice(a string, list []string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(list, a)
 }
 
 // CheckErr prints the msg with the prefix 'Error:' and exits with error code 1. If the msg is nil, it does nothing.
-func CheckErr(msg interface{}) {
+func CheckErr(msg any) {
 	if msg != nil {
 		fmt.Fprintln(os.Stderr, "Error:", msg)
 		os.Exit(1)

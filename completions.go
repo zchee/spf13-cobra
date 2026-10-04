@@ -697,7 +697,7 @@ func checkIfFlagCompletion(finalCmd *Command, args []string, lastArg string) (*p
 				// Only consider the case where the flag does not contain an =.
 				// If the flag contains an = it means it has already been fully processed,
 				// so we don't need to deal with it here.
-				if index := strings.Index(prevArg, "="); index < 0 {
+				if found := strings.Contains(prevArg, "="); !found {
 					if strings.HasPrefix(prevArg, "--") {
 						// Flag has full name
 						flagName = prevArg[2:]

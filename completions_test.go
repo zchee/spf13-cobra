@@ -2142,9 +2142,7 @@ func TestFlagCompletionConcurrentRegistration(t *testing.T) {
 	for i := 1; i <= maxFlags; i++ {
 		index := i
 		flagName := fmt.Sprintf("flag%d", i)
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			cmd := rootCmd
 			if index%2 == 0 {
 				cmd = childCmd
@@ -2152,7 +2150,7 @@ func TestFlagCompletionConcurrentRegistration(t *testing.T) {
 			_ = cmd.RegisterFlagCompletionFunc(flagName, func(cmd *Command, args []string, toComplete string) ([]string, ShellCompDirective) {
 				return []string{fmt.Sprintf("flag%d", index)}, ShellCompDirectiveDefault
 			})
-		}()
+		})
 	}
 
 	wg.Wait()
@@ -3727,7 +3725,7 @@ func TestGetFlagCompletion(t *testing.T) {
 					t.Errorf("Unexpected completions %q", comps)
 				}
 				if tc.directive != directive {
-					t.Errorf("Unexpected directive %q", directive)
+					t.Errorf("Unexpected directive %d", directive)
 				}
 			}
 		})

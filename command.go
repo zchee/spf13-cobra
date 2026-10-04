@@ -461,7 +461,7 @@ func (c *Command) UsageFunc() (f func(*Command) error) {
 
 // getUsageTemplateFunc returns the usage template function for the command
 // going up the command tree if necessary.
-func (c *Command) getUsageTemplateFunc() func(w io.Writer, data interface{}) error {
+func (c *Command) getUsageTemplateFunc() func(w io.Writer, data any) error {
 	if c.usageTemplate != nil {
 		return c.usageTemplate.fn
 	}
@@ -502,7 +502,7 @@ func (c *Command) HelpFunc() func(*Command, []string) {
 
 // getHelpTemplateFunc returns the help template function for the command
 // going up the command tree if necessary.
-func (c *Command) getHelpTemplateFunc() func(w io.Writer, data interface{}) error {
+func (c *Command) getHelpTemplateFunc() func(w io.Writer, data any) error {
 	if c.helpTemplate != nil {
 		return c.helpTemplate.fn
 	}
@@ -628,7 +628,7 @@ func (c *Command) VersionTemplate() string {
 
 // getVersionTemplateFunc returns the version template function for the command
 // going up the command tree if necessary.
-func (c *Command) getVersionTemplateFunc() func(w io.Writer, data interface{}) error {
+func (c *Command) getVersionTemplateFunc() func(w io.Writer, data any) error {
 	if c.versionTemplate != nil {
 		return c.versionTemplate.fn
 	}
@@ -1432,32 +1432,32 @@ main:
 }
 
 // Print is a convenience method to Print to the defined output, fallback to Stderr if not set.
-func (c *Command) Print(i ...interface{}) {
+func (c *Command) Print(i ...any) {
 	fmt.Fprint(c.OutOrStderr(), i...)
 }
 
 // Println is a convenience method to Println to the defined output, fallback to Stderr if not set.
-func (c *Command) Println(i ...interface{}) {
+func (c *Command) Println(i ...any) {
 	c.Print(fmt.Sprintln(i...))
 }
 
 // Printf is a convenience method to Printf to the defined output, fallback to Stderr if not set.
-func (c *Command) Printf(format string, i ...interface{}) {
+func (c *Command) Printf(format string, i ...any) {
 	c.Print(fmt.Sprintf(format, i...))
 }
 
 // PrintErr is a convenience method to Print to the defined Err output, fallback to Stderr if not set.
-func (c *Command) PrintErr(i ...interface{}) {
+func (c *Command) PrintErr(i ...any) {
 	fmt.Fprint(c.ErrOrStderr(), i...)
 }
 
 // PrintErrln is a convenience method to Println to the defined Err output, fallback to Stderr if not set.
-func (c *Command) PrintErrln(i ...interface{}) {
+func (c *Command) PrintErrln(i ...any) {
 	c.PrintErr(fmt.Sprintln(i...))
 }
 
 // PrintErrf is a convenience method to Printf to the defined Err output, fallback to Stderr if not set.
-func (c *Command) PrintErrf(format string, i ...interface{}) {
+func (c *Command) PrintErrf(format string, i ...any) {
 	c.PrintErr(fmt.Sprintf(format, i...))
 }
 
@@ -1936,7 +1936,7 @@ func commandNameMatches(s string, t string) bool {
 // tmplFunc holds a template and a function that will execute said template.
 type tmplFunc struct {
 	tmpl string
-	fn   func(io.Writer, interface{}) error
+	fn   func(io.Writer, any) error
 }
 
 const defaultUsageTemplate = `Usage:{{if .Runnable}}
@@ -1971,7 +1971,7 @@ Use "{{.CommandPath}} [command] --help" for more information about a command.{{e
 `
 
 // defaultUsageFunc is equivalent to executing defaultUsageTemplate. The two should be changed in sync.
-func defaultUsageFunc(w io.Writer, in interface{}) error {
+func defaultUsageFunc(w io.Writer, in any) error {
 	c := in.(*Command)
 	fmt.Fprint(w, "Usage:")
 	if c.Runnable() {
@@ -2044,7 +2044,7 @@ const defaultHelpTemplate = `{{with (or .Long .Short)}}{{. | trimTrailingWhitesp
 {{end}}{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}`
 
 // defaultHelpFunc is equivalent to executing defaultHelpTemplate. The two should be changed in sync.
-func defaultHelpFunc(w io.Writer, in interface{}) error {
+func defaultHelpFunc(w io.Writer, in any) error {
 	c := in.(*Command)
 	usage := c.Long
 	if usage == "" {
@@ -2065,7 +2065,7 @@ const defaultVersionTemplate = `{{with .DisplayName}}{{printf "%s " .}}{{end}}{{
 `
 
 // defaultVersionFunc is equivalent to executing defaultVersionTemplate. The two should be changed in sync.
-func defaultVersionFunc(w io.Writer, in interface{}) error {
+func defaultVersionFunc(w io.Writer, in any) error {
 	c := in.(*Command)
 	_, err := fmt.Fprintf(w, "%s version %s\n", c.DisplayName(), c.Version)
 	return err
