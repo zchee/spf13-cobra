@@ -1350,7 +1350,7 @@ func (c *Command) AddCommand(cmds ...*Command) {
 		if usageLen > c.commandsMaxUseLen {
 			c.commandsMaxUseLen = usageLen
 		}
-		commandPathLen := len(x.CommandPath())
+		commandPathLen := x.commandPathLen()
 		if commandPathLen > c.commandsMaxCommandPathLen {
 			c.commandsMaxCommandPathLen = commandPathLen
 		}
@@ -1399,7 +1399,7 @@ func (c *Command) AddGroup(groups ...*Group) {
 
 // RemoveCommand removes one or more commands from a parent command.
 func (c *Command) RemoveCommand(cmds ...*Command) {
-	commands := []*Command{}
+	commands := make([]*Command, 0, len(c.commands))
 main:
 	for _, command := range c.commands {
 		for _, cmd := range cmds {
@@ -1420,7 +1420,7 @@ main:
 		if usageLen > c.commandsMaxUseLen {
 			c.commandsMaxUseLen = usageLen
 		}
-		commandPathLen := len(command.CommandPath())
+		commandPathLen := command.commandPathLen()
 		if commandPathLen > c.commandsMaxCommandPathLen {
 			c.commandsMaxCommandPathLen = commandPathLen
 		}
@@ -1467,6 +1467,15 @@ func (c *Command) CommandPath() string {
 		return c.Parent().CommandPath() + " " + c.Name()
 	}
 	return c.DisplayName()
+}
+
+// commandPathLen returns len(c.CommandPath()) without building the path, so that
+// AddCommand and RemoveCommand can track the longest child path without allocating.
+func (c *Command) commandPathLen() int {
+	if c.HasParent() {
+		return c.Parent().commandPathLen() + 1 + len(c.Name())
+	}
+	return len(c.DisplayName())
 }
 
 // DisplayName returns the name to display in help text. Returns command Name()
