@@ -490,7 +490,7 @@ func (c *Command) getCompletions(args []string) (*Command, []Completion, ShellCo
 				if !flag.Changed || acceptsMultiple {
 					// If the flag is not already present, or if it can be specified multiple times (Array, Slice, or stringTo)
 					// we suggest it as a completion
-					completions = append(completions, getFlagNameCompletions(flag, toComplete)...)
+					completions = appendFlagNameCompletions(completions, flag, toComplete)
 				}
 			}
 
@@ -636,12 +636,22 @@ func getFlagNameCompletions(flag *pflag.Flag, toComplete string) []Completion {
 	if nonCompletableFlag(flag) {
 		return []Completion{}
 	}
+	return appendFlagNameCompletions(nil, flag, toComplete)
+}
 
-	var completions []Completion
+// appendFlagNameCompletions appends to dst the completions for the long and short
+// names of flag that match toComplete, and returns the extended slice. Appending to
+// the caller's slice, instead of returning a new one the caller then copies, saves
+// one allocation per matching flag.
+func appendFlagNameCompletions(dst []Completion, flag *pflag.Flag, toComplete string) []Completion {
+	if nonCompletableFlag(flag) {
+		return dst
+	}
+
 	flagName := "--" + flag.Name
 	if strings.HasPrefix(flagName, toComplete) {
 		// Flag without the =
-		completions = append(completions, CompletionWithDesc(flagName, flag.Usage))
+		dst = append(dst, CompletionWithDesc(flagName, flag.Usage))
 
 		// Why suggest both long forms: --flag and --flag= ?
 		// This forces the user to *always* have to type either an = or a space after the flag name.
@@ -659,10 +669,10 @@ func getFlagNameCompletions(flag *pflag.Flag, toComplete string) []Completion {
 
 	flagName = "-" + flag.Shorthand
 	if len(flag.Shorthand) > 0 && strings.HasPrefix(flagName, toComplete) {
-		completions = append(completions, CompletionWithDesc(flagName, flag.Usage))
+		dst = append(dst, CompletionWithDesc(flagName, flag.Usage))
 	}
 
-	return completions
+	return dst
 }
 
 func completeRequireFlags(finalCmd *Command, toComplete string) []Completion {
@@ -672,7 +682,7 @@ func completeRequireFlags(finalCmd *Command, toComplete string) []Completion {
 		if _, present := flag.Annotations[BashCompOneRequiredFlag]; present {
 			if !flag.Changed {
 				// If the flag is not already present, we suggest it as a completion
-				completions = append(completions, getFlagNameCompletions(flag, toComplete)...)
+				completions = appendFlagNameCompletions(completions, flag, toComplete)
 			}
 		}
 	}

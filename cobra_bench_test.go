@@ -89,7 +89,7 @@ func BenchmarkColdHelpers(b *testing.B) {
 		dst := make([]Completion, 0, 4)
 		b.ReportAllocs()
 		for b.Loop() {
-			dst = append(dst[:0], getFlagNameCompletions(flag, "")...)
+			dst = appendFlagNameCompletions(dst[:0], flag, "")
 		}
 		if len(dst) != 2 {
 			b.Fatalf("got %d completions, want 2", len(dst))
