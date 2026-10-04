@@ -19,7 +19,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -125,7 +125,7 @@ func GenYamlCustom(cmd *cobra.Command, w io.Writer, linkHandler func(string) str
 			result = append(result, parent.CommandPath()+" - "+parent.Short)
 		}
 		children := cmd.Commands()
-		sort.Sort(byName(children))
+		slices.SortFunc(children, compareByName)
 		for _, child := range children {
 			if !child.IsAvailableCommand() || child.IsAdditionalHelpTopicCommand() {
 				continue

@@ -24,7 +24,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 
 	flag "github.com/spf13/pflag"
@@ -1321,18 +1321,11 @@ func (c *Command) ResetCommands() {
 	c.parentsPflags = nil
 }
 
-// Sorts commands by their names.
-type commandSorterByName []*Command
-
-func (c commandSorterByName) Len() int           { return len(c) }
-func (c commandSorterByName) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
-func (c commandSorterByName) Less(i, j int) bool { return c[i].Name() < c[j].Name() }
-
 // Commands returns a sorted slice of child commands.
 func (c *Command) Commands() []*Command {
 	// do not sort commands if it already sorted or sorting was disabled
 	if EnableCommandSorting && !c.commandsAreSorted {
-		sort.Sort(commandSorterByName(c.commands))
+		slices.SortFunc(c.commands, func(a, b *Command) int { return strings.Compare(a.Name(), b.Name()) })
 		c.commandsAreSorted = true
 	}
 	return c.commands

@@ -20,7 +20,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"time"
 
@@ -96,7 +96,7 @@ func GenMarkdownCustom(cmd *cobra.Command, w io.Writer, linkHandler func(string)
 		}
 
 		children := cmd.Commands()
-		sort.Sort(byName(children))
+		slices.SortFunc(children, compareByName)
 
 		for _, child := range children {
 			if !child.IsAvailableCommand() || child.IsAdditionalHelpTopicCommand() {
