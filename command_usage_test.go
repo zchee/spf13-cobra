@@ -334,26 +334,27 @@ func TestDefaultUsageFuncCallbackInterleaving(t *testing.T) {
 
 func TestDefaultUsageFuncPanicInUserCode(t *testing.T) {
 	tests := map[string]struct {
-		writingNormalizer bool
-		panicOn           string
-		root              bool
+		panickingNormalizer bool
+		panicOn             string
+		root                bool
 	}{
 		"success: local flag Type panics":           {panicOn: "typed"},
 		"success: inherited flag Type panics":       {panicOn: "ptyped"},
 		"success: root persistent flag Type panics": {panicOn: "ptyped", root: true},
-		"success: normalizer panics on merge":       {writingNormalizer: true, panicOn: "plain"},
+		"success: normalizer panics on merge":       {panickingNormalizer: true, panicOn: "plain"},
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			render := func(fn func(io.Writer, any) error) (out string, recovered any) {
 				w := &recordingWriter{}
-				// The normalizer panics only while usage is rendered, not while the
-				// tree is built.
+				// The tree is built without the writing normalizer: setting a global
+				// normalization function runs it over the flags in map order, and
+				// its output would make the recorded streams differ between runs.
 				panicOn := ""
-				if !tt.writingNormalizer {
+				if !tt.panickingNormalizer {
 					panicOn = tt.panicOn
 				}
-				root, sub := callbackTree(w, tt.writingNormalizer, panicOn)
+				root, sub := callbackTree(w, false, panicOn)
 				cmd := sub
 				if tt.root {
 					cmd = root
@@ -363,7 +364,7 @@ func TestDefaultUsageFuncPanicInUserCode(t *testing.T) {
 				// precedes the usage function: it then panics at the first call site
 				// inside the usage function.
 				armed := false
-				if tt.writingNormalizer {
+				if tt.panickingNormalizer {
 					root.SetGlobalNormalizationFunc(func(_ *pflag.FlagSet, name string) pflag.NormalizedName {
 						if armed && name == tt.panicOn {
 							panic("normalizing " + name)
