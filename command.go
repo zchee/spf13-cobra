@@ -1975,69 +1975,105 @@ Use "{{.CommandPath}} [command] --help" for more information about a command.{{e
 // defaultUsageFunc is equivalent to executing defaultUsageTemplate. The two should be changed in sync.
 func defaultUsageFunc(w io.Writer, in any) error {
 	c := in.(*Command)
-	fmt.Fprint(w, "Usage:")
+	// The text is produced in as few Write calls as possible without changing what a
+	// reader of w observes. A *bytes.Buffer (as used by UsageString) is written to
+	// directly. Any other writer receives the text collected in a local buffer, which
+	// is flushed before each call that can run user code (LocalFlags and
+	// InheritedFlags run flag normalization functions, FlagUsages runs
+	// pflag.Value.Type) and at the end, so output that such code writes to w lands
+	// exactly where it did when every piece was written separately, and the text
+	// written before a panic or exit in user code is unchanged.
+	b, direct := w.(*bytes.Buffer)
+	if !direct {
+		b = new(bytes.Buffer)
+	}
+	flush := func() {
+		if !direct && b.Len() > 0 {
+			_, _ = w.Write(b.Bytes())
+			b.Reset()
+		}
+	}
+	writeCommand := func(name string, padding int, short string) {
+		b.WriteString("\n  ")
+		b.WriteString(rpad(name, padding))
+		b.WriteByte(' ')
+		b.WriteString(short)
+	}
+
+	b.WriteString("Usage:")
 	if c.Runnable() {
-		fmt.Fprintf(w, "\n  %s", c.UseLine())
+		b.WriteString("\n  ")
+		b.WriteString(c.UseLine())
 	}
 	if c.HasAvailableSubCommands() {
-		fmt.Fprintf(w, "\n  %s [command]", c.CommandPath())
+		b.WriteString("\n  ")
+		b.WriteString(c.CommandPath())
+		b.WriteString(" [command]")
 	}
 	if len(c.Aliases) > 0 {
-		fmt.Fprintf(w, "\n\nAliases:\n")
-		fmt.Fprintf(w, "  %s", c.NameAndAliases())
+		b.WriteString("\n\nAliases:\n  ")
+		b.WriteString(c.NameAndAliases())
 	}
 	if c.HasExample() {
-		fmt.Fprintf(w, "\n\nExamples:\n")
-		fmt.Fprintf(w, "%s", c.Example)
+		b.WriteString("\n\nExamples:\n")
+		b.WriteString(c.Example)
 	}
 	if c.HasAvailableSubCommands() {
 		cmds := c.Commands()
 		if len(c.Groups()) == 0 {
-			fmt.Fprintf(w, "\n\nAvailable Commands:")
+			b.WriteString("\n\nAvailable Commands:")
 			for _, subcmd := range cmds {
 				if subcmd.IsAvailableCommand() || subcmd.Name() == helpCommandName {
-					fmt.Fprintf(w, "\n  %s %s", rpad(subcmd.Name(), subcmd.NamePadding()), subcmd.Short)
+					writeCommand(subcmd.Name(), subcmd.NamePadding(), subcmd.Short)
 				}
 			}
 		} else {
 			for _, group := range c.Groups() {
-				fmt.Fprintf(w, "\n\n%s", group.Title)
+				b.WriteString("\n\n")
+				b.WriteString(group.Title)
 				for _, subcmd := range cmds {
 					if subcmd.GroupID == group.ID && (subcmd.IsAvailableCommand() || subcmd.Name() == helpCommandName) {
-						fmt.Fprintf(w, "\n  %s %s", rpad(subcmd.Name(), subcmd.NamePadding()), subcmd.Short)
+						writeCommand(subcmd.Name(), subcmd.NamePadding(), subcmd.Short)
 					}
 				}
 			}
 			if !c.AllChildCommandsHaveGroup() {
-				fmt.Fprintf(w, "\n\nAdditional Commands:")
+				b.WriteString("\n\nAdditional Commands:")
 				for _, subcmd := range cmds {
 					if subcmd.GroupID == "" && (subcmd.IsAvailableCommand() || subcmd.Name() == helpCommandName) {
-						fmt.Fprintf(w, "\n  %s %s", rpad(subcmd.Name(), subcmd.NamePadding()), subcmd.Short)
+						writeCommand(subcmd.Name(), subcmd.NamePadding(), subcmd.Short)
 					}
 				}
 			}
 		}
 	}
+	flush()
 	if c.HasAvailableLocalFlags() {
-		fmt.Fprintf(w, "\n\nFlags:\n")
-		fmt.Fprint(w, trimRightSpace(c.LocalFlags().FlagUsages()))
+		b.WriteString("\n\nFlags:\n")
+		flush()
+		b.WriteString(trimRightSpace(c.LocalFlags().FlagUsages()))
 	}
+	flush()
 	if c.HasAvailableInheritedFlags() {
-		fmt.Fprintf(w, "\n\nGlobal Flags:\n")
-		fmt.Fprint(w, trimRightSpace(c.InheritedFlags().FlagUsages()))
+		b.WriteString("\n\nGlobal Flags:\n")
+		flush()
+		b.WriteString(trimRightSpace(c.InheritedFlags().FlagUsages()))
 	}
 	if c.HasHelpSubCommands() {
-		fmt.Fprintf(w, "\n\nAdditional help topics:")
+		b.WriteString("\n\nAdditional help topics:")
 		for _, subcmd := range c.Commands() {
 			if subcmd.IsAdditionalHelpTopicCommand() {
-				fmt.Fprintf(w, "\n  %s %s", rpad(subcmd.CommandPath(), subcmd.CommandPathPadding()), subcmd.Short)
+				writeCommand(subcmd.CommandPath(), subcmd.CommandPathPadding(), subcmd.Short)
 			}
 		}
 	}
 	if c.HasAvailableSubCommands() {
-		fmt.Fprintf(w, "\n\nUse \"%s [command] --help\" for more information about a command.", c.CommandPath())
+		b.WriteString("\n\nUse \"")
+		b.WriteString(c.CommandPath())
+		b.WriteString(" [command] --help\" for more information about a command.")
 	}
-	fmt.Fprintln(w)
+	b.WriteByte('\n')
+	flush()
 	return nil
 }
 
