@@ -862,17 +862,23 @@ func (c *Command) Traverse(args []string) (*Command, []string, error) {
 // SuggestionsFor provides suggestions for the typedName.
 func (c *Command) SuggestionsFor(typedName string) []string {
 	suggestions := []string{}
+	// The typed name is lower-cased once and each sibling's name once, instead of
+	// again inside ld and for the prefix test; ld on the lower-cased strings without
+	// ignoreCase computes the same distance.
+	lowerTyped := strings.ToLower(typedName)
 	for _, cmd := range c.commands {
 		if cmd.IsAvailableCommand() {
-			levenshteinDistance := ld(typedName, cmd.Name(), true)
+			name := cmd.Name()
+			lowerName := strings.ToLower(name)
+			levenshteinDistance := ld(lowerTyped, lowerName, false)
 			suggestByLevenshtein := levenshteinDistance <= c.SuggestionsMinimumDistance
-			suggestByPrefix := strings.HasPrefix(strings.ToLower(cmd.Name()), strings.ToLower(typedName))
+			suggestByPrefix := strings.HasPrefix(lowerName, lowerTyped)
 			if suggestByLevenshtein || suggestByPrefix {
-				suggestions = append(suggestions, cmd.Name())
+				suggestions = append(suggestions, name)
 			}
 			for _, explicitSuggestion := range cmd.SuggestFor {
 				if strings.EqualFold(typedName, explicitSuggestion) {
-					suggestions = append(suggestions, cmd.Name())
+					suggestions = append(suggestions, name)
 				}
 			}
 		}
