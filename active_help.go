@@ -15,7 +15,6 @@
 package cobra
 
 import (
-	"fmt"
 	"os"
 )
 
@@ -36,7 +35,7 @@ const (
 // the array.  Each time this function is called with the same array, the new
 // ActiveHelp line will be shown below the previous ones when completion is triggered.
 func AppendActiveHelp(compArray []Completion, activeHelpStr string) []Completion {
-	return append(compArray, fmt.Sprintf("%s%s", activeHelpMarker, activeHelpStr))
+	return append(compArray, activeHelpMarker+activeHelpStr)
 }
 
 // GetActiveHelpConfig returns the value of the ActiveHelp environment variable
