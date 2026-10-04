@@ -1431,12 +1431,16 @@ func (c *Command) Print(i ...any) {
 
 // Println is a convenience method to Println to the defined output, fallback to Stderr if not set.
 func (c *Command) Println(i ...any) {
-	c.Print(fmt.Sprintln(i...))
+	// Format first, then resolve the writer: the arguments' String and Error methods
+	// run before OutOrStderr is consulted, as they did when this called c.Print.
+	s := fmt.Sprintln(i...)
+	_, _ = io.WriteString(c.OutOrStderr(), s)
 }
 
 // Printf is a convenience method to Printf to the defined output, fallback to Stderr if not set.
 func (c *Command) Printf(format string, i ...any) {
-	c.Print(fmt.Sprintf(format, i...))
+	s := fmt.Sprintf(format, i...)
+	_, _ = io.WriteString(c.OutOrStderr(), s)
 }
 
 // PrintErr is a convenience method to Print to the defined Err output, fallback to Stderr if not set.
@@ -1446,12 +1450,14 @@ func (c *Command) PrintErr(i ...any) {
 
 // PrintErrln is a convenience method to Println to the defined Err output, fallback to Stderr if not set.
 func (c *Command) PrintErrln(i ...any) {
-	c.PrintErr(fmt.Sprintln(i...))
+	s := fmt.Sprintln(i...)
+	_, _ = io.WriteString(c.ErrOrStderr(), s)
 }
 
 // PrintErrf is a convenience method to Printf to the defined Err output, fallback to Stderr if not set.
 func (c *Command) PrintErrf(format string, i ...any) {
-	c.PrintErr(fmt.Sprintf(format, i...))
+	s := fmt.Sprintf(format, i...)
+	_, _ = io.WriteString(c.ErrOrStderr(), s)
 }
 
 // CommandPath returns the full path to this command.
