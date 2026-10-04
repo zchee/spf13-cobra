@@ -35,7 +35,8 @@ func TestAddTemplateFunctions(t *testing.T) {
 	AddTemplateFuncs(template.FuncMap{
 		"f": func() bool { return false },
 		"h": func() string { return "Hello," },
-		"w": func() string { return "world." }})
+		"w": func() string { return "world." },
+	})
 
 	c := &Command{}
 	c.SetUsageTemplate(`{{if t}}{{h}}{{end}}{{if f}}{{h}}{{end}} {{w}}`)
@@ -253,7 +254,7 @@ func TestDeadcodeElimination(t *testing.T) {
 		dirname  = "test_deadcode"
 		progname = "test_deadcode_elimination"
 	)
-	_ = os.Mkdir(dirname, 0770)
+	_ = os.Mkdir(dirname, 0o770)
 	defer os.RemoveAll(dirname)
 	filename := filepath.Join(dirname, progname+".go")
 	err := os.WriteFile(filename, []byte(`package main
@@ -282,7 +283,7 @@ func main() {
 		os.Exit(1)
 	}
 }
-`), 0600)
+`), 0o600)
 	if err != nil {
 		t.Fatalf("could not write test program: %v", err)
 	}

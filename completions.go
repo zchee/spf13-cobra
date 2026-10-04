@@ -139,7 +139,7 @@ type Completion = string
 type CompletionFunc = func(cmd *Command, args []string, toComplete string) ([]Completion, ShellCompDirective)
 
 // CompletionWithDesc returns a [Completion] with a description by using the TAB delimited format.
-func CompletionWithDesc(choice string, description string) Completion {
+func CompletionWithDesc(choice, description string) Completion {
 	return choice + "\t" + description
 }
 
@@ -919,7 +919,6 @@ to your powershell profile.
 				return cmd.Root().GenPowerShellCompletion(out)
 			}
 			return cmd.Root().GenPowerShellCompletionWithDesc(out)
-
 		},
 	}
 	if haveNoDescFlag {
@@ -960,7 +959,7 @@ func CompDebug(msg string, printToStdErr bool) {
 	if path := os.Getenv("BASH_COMP_DEBUG_FILE"); path != "" {
 		//nolint:gosec // G703:BASH_COMP_DEBUG_FILE intentionally user-controlled for completion debug logging.
 		f, err := os.OpenFile(path,
-			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 		if err == nil {
 			defer f.Close()
 			WriteStringAndCheck(f, msg)

@@ -125,7 +125,7 @@ func TestFailGenFishCompletionFile(t *testing.T) {
 
 	defer os.RemoveAll(tmpDir)
 
-	f, _ := os.OpenFile(filepath.Join(tmpDir, "test"), os.O_CREATE, 0400)
+	f, _ := os.OpenFile(filepath.Join(tmpDir, "test"), os.O_CREATE, 0o400)
 	defer f.Close()
 
 	rootCmd := &Command{Use: "root", Args: NoArgs, Run: emptyRun}

@@ -48,7 +48,8 @@ func TestActiveHelpAlone(t *testing.T) {
 	expected := strings.Join([]string{
 		fmt.Sprintf("%s%s", activeHelpMarker, activeHelpMessage),
 		":0",
-		"Completion ended with directive: ShellCompDirectiveDefault", ""}, "\n")
+		"Completion ended with directive: ShellCompDirectiveDefault", "",
+	}, "\n")
 
 	if output != expected {
 		t.Errorf("expected: %q, got: %q", expected, output)
@@ -74,7 +75,8 @@ func TestActiveHelpAlone(t *testing.T) {
 	expected = strings.Join([]string{
 		fmt.Sprintf("%s%s", activeHelpMarker, activeHelpMessage),
 		":0",
-		"Completion ended with directive: ShellCompDirectiveDefault", ""}, "\n")
+		"Completion ended with directive: ShellCompDirectiveDefault", "",
+	}, "\n")
 
 	if output != expected {
 		t.Errorf("expected: %q, got: %q", expected, output)
@@ -111,7 +113,8 @@ func TestActiveHelpWithComps(t *testing.T) {
 		"second",
 		fmt.Sprintf("%s%s", activeHelpMarker, activeHelpMessage),
 		":0",
-		"Completion ended with directive: ShellCompDirectiveDefault", ""}, "\n")
+		"Completion ended with directive: ShellCompDirectiveDefault", "",
+	}, "\n")
 
 	if output != expected {
 		t.Errorf("expected: %q, got: %q", expected, output)
@@ -135,7 +138,8 @@ func TestActiveHelpWithComps(t *testing.T) {
 		"first",
 		"second",
 		":0",
-		"Completion ended with directive: ShellCompDirectiveDefault", ""}, "\n")
+		"Completion ended with directive: ShellCompDirectiveDefault", "",
+	}, "\n")
 
 	if output != expected {
 		t.Errorf("expected: %q, got: %q", expected, output)
@@ -159,7 +163,8 @@ func TestActiveHelpWithComps(t *testing.T) {
 		fmt.Sprintf("%s%s", activeHelpMarker, activeHelpMessage),
 		"second",
 		":0",
-		"Completion ended with directive: ShellCompDirectiveDefault", ""}, "\n")
+		"Completion ended with directive: ShellCompDirectiveDefault", "",
+	}, "\n")
 
 	if output != expected {
 		t.Errorf("expected: %q, got: %q", expected, output)
@@ -195,7 +200,8 @@ func TestMultiActiveHelp(t *testing.T) {
 		fmt.Sprintf("%s%s", activeHelpMarker, activeHelpMessage),
 		fmt.Sprintf("%s%s", activeHelpMarker, activeHelpMessage2),
 		":4",
-		"Completion ended with directive: ShellCompDirectiveNoFileComp", ""}, "\n")
+		"Completion ended with directive: ShellCompDirectiveNoFileComp", "",
+	}, "\n")
 
 	if output != expected {
 		t.Errorf("expected: %q, got: %q", expected, output)
@@ -221,7 +227,8 @@ func TestMultiActiveHelp(t *testing.T) {
 		"second",
 		fmt.Sprintf("%s%s", activeHelpMarker, activeHelpMessage2),
 		":4",
-		"Completion ended with directive: ShellCompDirectiveNoFileComp", ""}, "\n")
+		"Completion ended with directive: ShellCompDirectiveNoFileComp", "",
+	}, "\n")
 
 	if output != expected {
 		t.Errorf("expected: %q, got: %q", expected, output)
@@ -256,7 +263,8 @@ func TestActiveHelpForFlag(t *testing.T) {
 		"second",
 		fmt.Sprintf("%s%s", activeHelpMarker, activeHelpMessage2),
 		":4",
-		"Completion ended with directive: ShellCompDirectiveNoFileComp", ""}, "\n")
+		"Completion ended with directive: ShellCompDirectiveNoFileComp", "",
+	}, "\n")
 
 	if output != expected {
 		t.Errorf("expected: %q, got: %q", expected, output)
@@ -351,7 +359,8 @@ func TestDisableActiveHelp(t *testing.T) {
 	expected := strings.Join([]string{
 		"first",
 		":0",
-		"Completion ended with directive: ShellCompDirectiveDefault", ""}, "\n")
+		"Completion ended with directive: ShellCompDirectiveDefault", "",
+	}, "\n")
 
 	if output != expected {
 		t.Errorf("expected: %q, got: %q", expected, output)
@@ -372,7 +381,8 @@ func TestDisableActiveHelp(t *testing.T) {
 	expected = strings.Join([]string{
 		"first",
 		":0",
-		"Completion ended with directive: ShellCompDirectiveDefault", ""}, "\n")
+		"Completion ended with directive: ShellCompDirectiveDefault", "",
+	}, "\n")
 
 	if output != expected {
 		t.Errorf("expected: %q, got: %q", expected, output)

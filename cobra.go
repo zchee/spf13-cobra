@@ -41,8 +41,10 @@ var templateFuncs = template.FuncMap{
 	"eq":                      Eq,
 }
 
-var initializers []func()
-var finalizers []func()
+var (
+	initializers []func()
+	finalizers   []func()
+)
 
 const (
 	defaultPrefixMatching   = false
@@ -111,7 +113,7 @@ func OnFinalize(y ...func()) {
 // Gt takes two types and checks whether the first type is greater than the second. In case of types Arrays, Chans,
 // Maps and Slices, Gt will compare their lengths. Ints are compared directly while strings are first parsed as
 // ints and then compared.
-func Gt(a any, b any) bool {
+func Gt(a, b any) bool {
 	var left, right int64
 	av := reflect.ValueOf(a)
 
@@ -141,7 +143,7 @@ func Gt(a any, b any) bool {
 // FIXME Eq is unused by cobra and should be removed in a version 2. It exists only for compatibility with users of cobra.
 
 // Eq takes two types and checks whether they are equal. Supported types are int and string. Unsupported types will panic.
-func Eq(a any, b any) bool {
+func Eq(a, b any) bool {
 	av := reflect.ValueOf(a)
 	bv := reflect.ValueOf(b)
 
@@ -217,7 +219,6 @@ func ld(s, t string, ignoreCase bool) int {
 				d[i][j] = min + 1
 			}
 		}
-
 	}
 	return d[len(s)][len(t)]
 }

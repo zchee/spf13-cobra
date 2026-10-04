@@ -1389,8 +1389,8 @@ func TestShorthandVersionFlagOnlyAddedIfVersionNotDefined(t *testing.T) {
 }
 
 func TestUsageIsNotPrintedTwice(t *testing.T) {
-	var cmd = &Command{Use: "root"}
-	var sub = &Command{Use: "sub"}
+	cmd := &Command{Use: "root"}
+	sub := &Command{Use: "sub"}
 	cmd.AddCommand(sub)
 
 	output, _ := executeCommand(cmd, "")
@@ -1579,7 +1579,6 @@ func TestCaseSensitivityBackwardCompatibility(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error on calling a command in upper case while command names are case sensitive. Got nil.")
 	}
-
 }
 
 func TestRemoveCommand(t *testing.T) {
@@ -1916,7 +1915,7 @@ func TestCommandsAreSorted(t *testing.T) {
 	originalNames := []string{"middle", "zlast", "afirst"}
 	expectedNames := []string{"afirst", "middle", "zlast"}
 
-	var rootCmd = &Command{Use: "root"}
+	rootCmd := &Command{Use: "root"}
 
 	for _, name := range originalNames {
 		rootCmd.AddCommand(&Command{Use: name})
@@ -1937,7 +1936,7 @@ func TestEnableCommandSortingIsDisabled(t *testing.T) {
 
 	originalNames := []string{"middle", "zlast", "afirst"}
 
-	var rootCmd = &Command{Use: "root"}
+	rootCmd := &Command{Use: "root"}
 
 	for _, name := range originalNames {
 		rootCmd.AddCommand(&Command{Use: name})
@@ -1954,7 +1953,7 @@ func TestEnableCommandSortingIsDisabled(t *testing.T) {
 }
 
 func TestUsageWithGroup(t *testing.T) {
-	var rootCmd = &Command{Use: "root", Short: "test", Run: emptyRun}
+	rootCmd := &Command{Use: "root", Short: "test", Run: emptyRun}
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
 	rootCmd.AddGroup(&Group{ID: "group1", Title: "group1"})
@@ -1975,7 +1974,7 @@ func TestUsageWithGroup(t *testing.T) {
 }
 
 func TestUsageHelpGroup(t *testing.T) {
-	var rootCmd = &Command{Use: "root", Short: "test", Run: emptyRun}
+	rootCmd := &Command{Use: "root", Short: "test", Run: emptyRun}
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
 	rootCmd.AddGroup(&Group{ID: "group", Title: "group"})
@@ -1993,7 +1992,7 @@ func TestUsageHelpGroup(t *testing.T) {
 }
 
 func TestUsageCompletionGroup(t *testing.T) {
-	var rootCmd = &Command{Use: "root", Short: "test", Run: emptyRun}
+	rootCmd := &Command{Use: "root", Short: "test", Run: emptyRun}
 
 	rootCmd.AddGroup(&Group{ID: "group", Title: "group"})
 	rootCmd.AddGroup(&Group{ID: "help", Title: "help"})
@@ -2013,7 +2012,7 @@ func TestUsageCompletionGroup(t *testing.T) {
 }
 
 func TestUngroupedCommand(t *testing.T) {
-	var rootCmd = &Command{Use: "root", Short: "test", Run: emptyRun}
+	rootCmd := &Command{Use: "root", Short: "test", Run: emptyRun}
 
 	rootCmd.AddGroup(&Group{ID: "group", Title: "group"})
 	rootCmd.AddGroup(&Group{ID: "help", Title: "help"})
@@ -2035,7 +2034,7 @@ func TestUngroupedCommand(t *testing.T) {
 }
 
 func TestAddGroup(t *testing.T) {
-	var rootCmd = &Command{Use: "root", Short: "test", Run: emptyRun}
+	rootCmd := &Command{Use: "root", Short: "test", Run: emptyRun}
 
 	rootCmd.AddGroup(&Group{ID: "group", Title: "Test group"})
 	rootCmd.AddCommand(&Command{Use: "cmd", GroupID: "group", Run: emptyRun})
@@ -2049,7 +2048,7 @@ func TestAddGroup(t *testing.T) {
 }
 
 func TestWrongGroupFirstLevel(t *testing.T) {
-	var rootCmd = &Command{Use: "root", Short: "test", Run: emptyRun}
+	rootCmd := &Command{Use: "root", Short: "test", Run: emptyRun}
 
 	rootCmd.AddGroup(&Group{ID: "group", Title: "Test group"})
 	// Use the wrong group ID
@@ -2067,8 +2066,8 @@ func TestWrongGroupFirstLevel(t *testing.T) {
 }
 
 func TestWrongGroupNestedLevel(t *testing.T) {
-	var rootCmd = &Command{Use: "root", Short: "test", Run: emptyRun}
-	var childCmd = &Command{Use: "child", Run: emptyRun}
+	rootCmd := &Command{Use: "root", Short: "test", Run: emptyRun}
+	childCmd := &Command{Use: "child", Run: emptyRun}
 	rootCmd.AddCommand(childCmd)
 
 	childCmd.AddGroup(&Group{ID: "group", Title: "Test group"})
@@ -2087,8 +2086,8 @@ func TestWrongGroupNestedLevel(t *testing.T) {
 }
 
 func TestWrongGroupForHelp(t *testing.T) {
-	var rootCmd = &Command{Use: "root", Short: "test", Run: emptyRun}
-	var childCmd = &Command{Use: "child", Run: emptyRun}
+	rootCmd := &Command{Use: "root", Short: "test", Run: emptyRun}
+	childCmd := &Command{Use: "child", Run: emptyRun}
 	rootCmd.AddCommand(childCmd)
 
 	rootCmd.AddGroup(&Group{ID: "group", Title: "Test group"})
@@ -2107,8 +2106,8 @@ func TestWrongGroupForHelp(t *testing.T) {
 }
 
 func TestWrongGroupForCompletion(t *testing.T) {
-	var rootCmd = &Command{Use: "root", Short: "test", Run: emptyRun}
-	var childCmd = &Command{Use: "child", Run: emptyRun}
+	rootCmd := &Command{Use: "root", Short: "test", Run: emptyRun}
+	childCmd := &Command{Use: "child", Run: emptyRun}
 	rootCmd.AddCommand(childCmd)
 
 	rootCmd.AddGroup(&Group{ID: "group", Title: "Test group"})
@@ -2178,7 +2177,6 @@ func TestCommandPrintRedirection(t *testing.T) {
 	errBuff, outBuff := bytes.NewBuffer(nil), bytes.NewBuffer(nil)
 	root := &Command{
 		Run: func(cmd *Command, args []string) {
-
 			cmd.PrintErr("PrintErr")
 			cmd.PrintErrln("PrintErr", "line")
 			cmd.PrintErrf("PrintEr%s", "r")
@@ -2703,8 +2701,10 @@ func TestSetContextPersistentPreRun(t *testing.T) {
 	}
 }
 
-const VersionFlag = "--version"
-const HelpFlag = "--help"
+const (
+	VersionFlag = "--version"
+	HelpFlag    = "--help"
+)
 
 func TestNoRootRunCommandExecutedWithVersionSet(t *testing.T) {
 	rootCmd := &Command{Use: "root", Version: "1.0.0", Long: "Long description"}

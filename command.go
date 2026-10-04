@@ -1848,7 +1848,7 @@ func (c *Command) Flag(name string) (flag *flag.Flag) {
 		flag = c.persistentFlag(name)
 	}
 
-	return
+	return flag
 }
 
 // Recursively find matching persistent flag.
@@ -1861,7 +1861,7 @@ func (c *Command) persistentFlag(name string) (flag *flag.Flag) {
 		c.updateParentsPflags()
 		flag = c.parentsPflags.Lookup(name)
 	}
-	return
+	return flag
 }
 
 // ParseFlags parses persistent flag tree and local flags.
@@ -1925,7 +1925,7 @@ func (c *Command) updateParentsPflags() {
 // commandNameMatches checks if two command names are equal
 // taking into account case sensitivity according to
 // EnableCaseInsensitive global configuration.
-func commandNameMatches(s string, t string) bool {
+func commandNameMatches(s, t string) bool {
 	if EnableCaseInsensitive {
 		return strings.EqualFold(s, t)
 	}

@@ -51,7 +51,7 @@ func (c *Command) MarkFlagFilename(name string, extensions ...string) error {
 // This will only work for bash completion.
 // It is recommended to instead use c.RegisterFlagCompletionFunc(...) which allows
 // to register a Go function which will work across all shells.
-func (c *Command) MarkFlagCustom(name string, f string) error {
+func (c *Command) MarkFlagCustom(name, f string) error {
 	return MarkFlagCustom(c.Flags(), name, f)
 }
 
@@ -74,7 +74,7 @@ func MarkFlagFilename(flags *pflag.FlagSet, name string, extensions ...string) e
 // This will only work for bash completion.
 // It is recommended to instead use c.RegisterFlagCompletionFunc(...) which allows
 // to register a Go function which will work across all shells.
-func MarkFlagCustom(flags *pflag.FlagSet, name string, f string) error {
+func MarkFlagCustom(flags *pflag.FlagSet, name, f string) error {
 	return flags.SetAnnotation(name, BashCompCustom, []string{f})
 }
 

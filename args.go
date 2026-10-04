@@ -114,7 +114,7 @@ func ExactArgs(n int) PositionalArgs {
 }
 
 // RangeArgs returns an error if the number of args is not within the expected range.
-func RangeArgs(min int, max int) PositionalArgs {
+func RangeArgs(min, max int) PositionalArgs {
 	return func(cmd *Command, args []string) error {
 		if len(args) < min || len(args) > max {
 			return fmt.Errorf("accepts between %d and %d arg(s), received %d", min, max, len(args))
