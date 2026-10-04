@@ -29,6 +29,7 @@ import (
 	"text/template"
 	"time"
 	"unicode"
+	"unicode/utf8"
 )
 
 var templateFuncs = template.FuncMap{
@@ -174,8 +175,25 @@ func appendIfNotPresent(s, stringToAppend string) string {
 
 // rpad adds padding to the right of a string.
 func rpad(s string, padding int) string {
-	formattedString := fmt.Sprintf("%%-%ds", padding)
-	return fmt.Sprintf(formattedString, s)
+	// fmt accepts widths only up to about 10^7 and prints an error marker beyond that.
+	// Paddings far outside any real column width keep fmt's exact output.
+	if padding > 1_000_000 || padding < -1_000_000 {
+		formattedString := fmt.Sprintf("%%-%ds", padding)
+		return fmt.Sprintf(formattedString, s)
+	}
+	// Like fmt's %-Ns, pad with spaces to the width counted in runes; a negative
+	// padding pads to its absolute value, as %--Ns does.
+	fill := max(padding, -padding) - utf8.RuneCountInString(s)
+	if fill <= 0 {
+		return s
+	}
+	var b strings.Builder
+	b.Grow(len(s) + fill)
+	b.WriteString(s)
+	for range fill {
+		b.WriteByte(' ')
+	}
+	return b.String()
 }
 
 func tmpl(text string) *tmplFunc {
