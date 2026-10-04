@@ -16,6 +16,7 @@ package cobra
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -255,38 +256,7 @@ func (c *Command) initCompleteCmd(args []string) {
 				}
 			}
 			noActiveHelp := GetActiveHelpConfig(finalCmd) == activeHelpGlobalDisable
-			out := finalCmd.OutOrStdout()
-			for _, comp := range completions {
-				if noActiveHelp && strings.HasPrefix(comp, activeHelpMarker) {
-					// Remove all activeHelp entries if it's disabled.
-					continue
-				}
-				if noDescriptions {
-					// Remove any description that may be included following a tab character.
-					comp = strings.SplitN(comp, "\t", 2)[0]
-				}
-
-				// Make sure we only write the first line to the output.
-				// This is needed if a description contains a linebreak.
-				// Otherwise the shell scripts will interpret the other lines as new flags
-				// and could therefore provide a wrong completion.
-				comp = strings.SplitN(comp, "\n", 2)[0]
-
-				// Finally trim the completion.  This is especially important to get rid
-				// of a trailing tab when there are no description following it.
-				// For example, a sub-command without a description should not be completed
-				// with a tab at the end (or else zsh will show a -- following it
-				// although there is no description).
-				comp = strings.TrimSpace(comp)
-
-				// Print each possible completion to the output for the completion script to consume.
-				fmt.Fprintln(out, comp)
-			}
-
-			// As the last printout, print the completion directive for the completion script to parse.
-			// The directive integer must be that last character following a single colon (:).
-			// The completion script expects :<directive>
-			fmt.Fprintf(out, ":%d\n", directive)
+			writeCompletions(finalCmd.OutOrStdout(), completions, directive, noDescriptions, noActiveHelp)
 
 			// Print some helpful info to stderr for the user to understand.
 			// Output from stderr must be ignored by the completion script.
@@ -303,6 +273,72 @@ func (c *Command) initCompleteCmd(args []string) {
 		// command would cause the root command to suddenly have a subcommand.
 		c.RemoveCommand(completeCmd)
 	}
+}
+
+// maxCompletionWriteSize bounds the buffer that collects the completion output, so that
+// a long completion list is written in a few large pieces instead of one Write per line.
+const maxCompletionWriteSize = 64 << 10
+
+// writeCompletions prints each completion on its own line, followed by the directive
+// line ":<directive>" that the completion scripts parse. The lines are collected in a
+// buffer and written whenever the next line would not fit, so a list of up to
+// maxCompletionWriteSize bytes takes a single Write; the bytes are the same as writing
+// every line separately.
+func writeCompletions(out io.Writer, completions []Completion, directive ShellCompDirective, noDescriptions, noActiveHelp bool) {
+	// Filtering only shortens a completion, so this bounds the size of the output.
+	size := len(":-9223372036854775808\n")
+	for _, comp := range completions {
+		size += len(comp) + 1
+	}
+	buf := make([]byte, 0, min(size, maxCompletionWriteSize))
+	for _, comp := range completions {
+		if noActiveHelp && strings.HasPrefix(comp, activeHelpMarker) {
+			// Remove all activeHelp entries if it's disabled.
+			continue
+		}
+		if noDescriptions {
+			// Remove any description that may be included following a tab character.
+			comp, _, _ = strings.Cut(comp, "\t")
+		}
+
+		// Make sure we only write the first line to the output.
+		// This is needed if a description contains a linebreak.
+		// Otherwise the shell scripts will interpret the other lines as new flags
+		// and could therefore provide a wrong completion.
+		comp, _, _ = strings.Cut(comp, "\n")
+
+		// Finally trim the completion.  This is especially important to get rid
+		// of a trailing tab when there are no description following it.
+		// For example, a sub-command without a description should not be completed
+		// with a tab at the end (or else zsh will show a -- following it
+		// although there is no description).
+		comp = strings.TrimSpace(comp)
+
+		// Print each possible completion to the output for the completion script to consume.
+		buf = flushCompletions(out, buf, len(comp)+1)
+		buf = append(buf, comp...)
+		buf = append(buf, '\n')
+	}
+
+	// As the last printout, print the completion directive for the completion script to parse.
+	// The directive integer must be that last character following a single colon (:).
+	// The completion script expects :<directive>
+	var line [len(":-9223372036854775808\n")]byte
+	directiveLine := append(strconv.AppendInt(append(line[:0], ':'), int64(directive), 10), '\n')
+	buf = flushCompletions(out, buf, len(directiveLine))
+	buf = append(buf, directiveLine...)
+	_, _ = out.Write(buf)
+}
+
+// flushCompletions writes buf to out when n more bytes would not fit into its capacity
+// and returns the emptied buffer; a line longer than the capacity is then appended whole.
+// Write errors are ignored, as they were when every line was printed with fmt.Fprintln.
+func flushCompletions(out io.Writer, buf []byte, n int) []byte {
+	if len(buf) > 0 && len(buf)+n > cap(buf) {
+		_, _ = out.Write(buf)
+		return buf[:0]
+	}
+	return buf
 }
 
 // SliceValue is a reduced version of [pflag.SliceValue]. It is used to detect
