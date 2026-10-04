@@ -54,7 +54,8 @@ func OnlyValidArgs(cmd *Command, args []string) error {
 		// A description is following a tab character.
 		validArgs := make([]string, 0, len(cmd.ValidArgs))
 		for _, v := range cmd.ValidArgs {
-			validArgs = append(validArgs, strings.SplitN(v, "\t", 2)[0])
+			name, _, _ := strings.Cut(v, "\t")
+			validArgs = append(validArgs, name)
 		}
 		for _, v := range args {
 			if !stringInSlice(v, validArgs) {
