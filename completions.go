@@ -17,10 +17,10 @@ package cobra
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
+	"unicode"
 
 	"github.com/spf13/pflag"
 )
@@ -997,16 +997,35 @@ const (
 	configEnvVarSuffixDescriptions = "COMPLETION_DESCRIPTIONS"
 )
 
-var configEnvVarPrefixSubstRegexp = regexp.MustCompile(`[^A-Z0-9_]`)
-
 // configEnvVar returns the name of the program-specific configuration environment
 // variable.  It has the format <PROGRAM>_<SUFFIX> where <PROGRAM> is the name of the
 // root command in upper case, with all non-ASCII-alphanumeric characters replaced by `_`.
 func configEnvVar(name, suffix string) string {
 	// This format should not be changed: users will be using it explicitly.
-	v := strings.ToUpper(fmt.Sprintf("%s_%s", name, suffix))
-	v = configEnvVarPrefixSubstRegexp.ReplaceAllString(v, "_")
-	return v
+	// It is the upper-cased "<name>_<suffix>" with every rune outside [A-Z0-9_]
+	// replaced by "_", built in one pass: each rune is upper-cased with
+	// unicode.ToUpper, as strings.ToUpper does, and each invalid byte decodes to one
+	// utf8.RuneError, as strings.ToUpper turns it into one U+FFFD. Every rune
+	// becomes exactly one byte, so the result is never longer than the input.
+	var sb strings.Builder
+	sb.Grow(len(name) + 1 + len(suffix))
+	writeConfigEnvVarPart(&sb, name)
+	sb.WriteByte('_')
+	writeConfigEnvVarPart(&sb, suffix)
+	return sb.String()
+}
+
+// writeConfigEnvVarPart writes s upper-cased, with every rune that is not an ASCII
+// upper-case letter, digit or underscore after upper-casing replaced by '_'.
+func writeConfigEnvVarPart(sb *strings.Builder, s string) {
+	for _, r := range s {
+		switch u := unicode.ToUpper(r); {
+		case 'A' <= u && u <= 'Z', '0' <= u && u <= '9', u == '_':
+			sb.WriteRune(u) // ASCII here, so exactly one byte
+		default:
+			sb.WriteByte('_')
+		}
+	}
 }
 
 // getEnvConfig returns the value of the configuration environment variable
